@@ -100,14 +100,13 @@ def move(game_state: typing.Dict) -> typing.Dict:
                 if (segment["x"] == my_head["x"] and segment["y"] == my_head["y"] + 1):
                     is_move_safe["up"] = False
 
+
+    
+    
     # Select a safe move
     safe_moves = [move for move, isSafe in is_move_safe.items() if isSafe]
 
-    if len(safe_moves) == 0:
-        print(f"MOVE {game_state['turn']}: No safe moves detected! Moving down")
-        return {"move": "down"}
 
-    # Choose a random move from the safe ones
     next_move = random.choice(safe_moves)
 
     print(f"MOVE {game_state['turn']}: {next_move}")
