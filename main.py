@@ -338,14 +338,14 @@ preferLargerSpacesModuleInstance = PreferLargerSpacesModule()
 
 # Add the rank_moves method of each instance to the modules list
 modules = [
-    avoidBackwardMoveModuleInstance.rank_moves,
-    avoidOutOfBoundsModuleInstance.rank_moves,
-    avoidSelfCollisionModuleInstance.rank_moves,
-    loopAvoidanceModuleInstance.rank_moves,
-    avoidOtherSnakesModuleInstance.rank_moves,
-    smartFoodChasingModuleInstance.rank_moves,
-    avoidHeadToHeadCollisionsModuleInstance.rank_moves,
-    preferLargerSpacesModuleInstance.rank_moves
+    avoidBackwardMoveModuleInstance,
+    avoidOutOfBoundsModuleInstance,
+    avoidSelfCollisionModuleInstance,
+    loopAvoidanceModuleInstance,
+    avoidOtherSnakesModuleInstance,
+    smartFoodChasingModuleInstance,
+    avoidHeadToHeadCollisionsModuleInstance,
+    preferLargerSpacesModuleInstance
 ]    
 
 
