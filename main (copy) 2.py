@@ -1,18 +1,7 @@
-#dont go for food you cant access
-#be more agrressive
-#head to head (murder!)
-#
-
-
-
-
-
 import random
 import typing
 import math
 import numpy as np
-from queue import PriorityQueue
-
 
 import heapq
 
@@ -24,6 +13,7 @@ class MoveRankingModule:
       """
       pass
 #Modules go here
+
 
 
 
@@ -75,7 +65,7 @@ class AvoidHeadToHeadCollisionsModule(MoveRankingModule):
 
       return rankings
 class SmartFoodChasingModule(MoveRankingModule):
-  def __init__(self, food_pursuit_threshold: int = 96.141592653589793284643383297):
+  def __init__(self, food_pursuit_threshold: int = 95):
       # Initialize with a threshold for when to start pursuing food based on health
       self.food_pursuit_threshold = food_pursuit_threshold
 
@@ -175,10 +165,6 @@ class AvoidOutOfBoundsModule(MoveRankingModule):
           rankings['up'] = -100
 
       return rankings
-
-
-
-
 class AvoidOtherSnakesModule(MoveRankingModule):
   def rank_moves(self, game_state: typing.Dict) -> typing.Dict:
       my_head = game_state["you"]["body"][0]  # The current position of the snake's head
@@ -450,7 +436,7 @@ def decide_move(modules, game_state):
             rankings[direction].append(ranking)
 
     # Print the rankings dictionary before summing and averaging
-    print("Weights from all modules: ")
+    print("Rankings from all modules: ")
     for direction, ranks in rankings.items():
         print(f"{direction}: {ranks}")
 
@@ -480,7 +466,7 @@ class RandomMoveModule(MoveRankingModule):
         return {direction: random.random() for direction in ['up', 'down', 'left', 'right']}
 
 # Register Modules
-modules = [AvoidBackwardMoveModule(), AvoidOutOfBoundsModule(), AvoidSelfCollisionModule(),LoopAvoidanceModule(), AvoidOtherSnakesModule(), SmartFoodChasingModule(),  AvoidHeadToHeadCollisionsModule(), PreferLargerSpacesModule()
+modules = [AvoidBackwardMoveModule(), AvoidOutOfBoundsModule(), AvoidSelfCollisionModule(),LoopAvoidanceModule(), AvoidOtherSnakesModule(), SmartFoodChasingModule(),  AvoidHeadToHeadCollisionsModule(), PreferLargerSpacesModule(),
 ]
 
 # Battlesnake Info Function

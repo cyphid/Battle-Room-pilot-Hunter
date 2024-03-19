@@ -1,21 +1,9 @@
-#dont go for food you cant access
-#be more agrressive
-#head to head (murder!)
-#
-
-
-
-
-
 import random
 import typing
 import math
 import numpy as np
-from queue import PriorityQueue
-
 
 import heapq
-
 class MoveRankingModule:
   def rank_moves(self, game_state: typing.Dict) -> typing.Dict:
       """
@@ -24,26 +12,6 @@ class MoveRankingModule:
       """
       pass
 #Modules go here
-
-
-
-
-
-class HealthLoggerModule:
-  def __init__(self):
-      self.health_log = []
-
-  def update_health(self, current_health: int):
-      """Log the current health of the snake."""
-      self.health_log.append(current_health)
-
-  def print_health_log_as_csv(self):
-      """Print the recorded health log in CSV format, horizontally."""
-      health_values_csv = ",".join(map(str, self.health_log))
-      print("Health")
-      print(health_values_csv)
-
-
 class AvoidHeadToHeadCollisionsModule(MoveRankingModule):
   def rank_moves(self, game_state: typing.Dict) -> typing.Dict:
       my_head = game_state["you"]["body"][0]
@@ -75,7 +43,7 @@ class AvoidHeadToHeadCollisionsModule(MoveRankingModule):
 
       return rankings
 class SmartFoodChasingModule(MoveRankingModule):
-  def __init__(self, food_pursuit_threshold: int = 96.141592653589793284643383297):
+  def __init__(self, food_pursuit_threshold: int = 100):
       # Initialize with a threshold for when to start pursuing food based on health
       self.food_pursuit_threshold = food_pursuit_threshold
 
@@ -120,8 +88,8 @@ class SmartFoodChasingModule(MoveRankingModule):
       # Initial rankings
       rankings = {'up': 0, 'down': 0, 'left': 0, 'right': 0}
       potential_moves = {
-          'up': {'x': my_head['x'], 'y': my_head['y'] + 1},
-          'down': {'x': my_head['x'], 'y': my_head['y'] - 1},
+          'up': {'x': my_head['x'], 'y': my_head['y'] - 1},
+          'down': {'x': my_head['x'], 'y': my_head['y'] + 1},
           'left': {'x': my_head['x'] - 1, 'y': my_head['y']},
           'right': {'x': my_head['x'] + 1, 'y': my_head['y']}
       }
@@ -135,7 +103,6 @@ class SmartFoodChasingModule(MoveRankingModule):
           rankings[direction] = min(10, weight)  # Ensure weights are capped at 10
 
       return rankings
-
 class AvoidBackwardMoveModule(MoveRankingModule):
   def rank_moves(self, game_state: typing.Dict) -> typing.Dict:
       my_head = game_state["you"]["body"][0]
@@ -175,10 +142,6 @@ class AvoidOutOfBoundsModule(MoveRankingModule):
           rankings['up'] = -100
 
       return rankings
-
-
-
-
 class AvoidOtherSnakesModule(MoveRankingModule):
   def rank_moves(self, game_state: typing.Dict) -> typing.Dict:
       my_head = game_state["you"]["body"][0]  # The current position of the snake's head
@@ -231,7 +194,7 @@ class AvoidSelfCollisionModule(MoveRankingModule):
 
       return rankings
 class LoopAvoidanceModule(MoveRankingModule):
-  def __init__(self, history_length=30):
+  def __init__(self, history_length=10):
       self.history = []  # History of positions as (x, y) tuples
       self.history_length = history_length
 
@@ -260,7 +223,7 @@ class LoopAvoidanceModule(MoveRankingModule):
           next_pos = (next_head['x'], next_head['y'])
           if next_pos in self.history:
               # Penalize moves that lead to positions recently visited
-              rankings[direction] = -5
+              rankings[direction] = -10
 
       return rankings
 class AStarFoodChasingModule(MoveRankingModule):
@@ -424,6 +387,79 @@ class PreferLargerSpacesModule(MoveRankingModule):
               rankings[direction] = (score / max_accessible_area) * 10
 
       return rankings
+class PreferLargerSpacesModule(MoveRankingModule):
+  # ... existing methods ...
+
+  def rank_moves(self, game_state: typing.Dict) -> typing.Dict:
+      my_head = game_state["you"]["body"][0]
+      board_width = game_state['board']['width']
+      board_height = game_state['board']['height']
+      snake_size = len(game_state["you"]["body"])  # Total size of the snake
+      occupied = self.initialize_occupied(game_state)
+
+      potential_next_positions = {
+          'up': (my_head['x'], my_head['y'] - 1),
+          'down': (my_head['x'], my_head['y'] + 1),
+          'left': (my_head['x'] - 1, my_head['y']),
+          'right': (my_head['x'] + 1, my_head['y'])
+      }
+
+      # Adjust rankings for potential moves based on accessible area
+      rankings = {}
+      for direction, next_pos in potential_next_positions.items():
+          if next_pos in occupied:
+              rankings[direction] = -100  # Mark as invalid move
+              continue
+
+          accessible_area = self.flood_fill_count(next_pos, occupied, board_width, board_height)
+
+          if accessible_area < snake_size:
+              deficit = snake_size - accessible_area
+              rankings[direction] = -30 * (deficit / snake_size)
+          else:
+              rankings[direction] = accessible_area ** 2
+
+      # Normalize positive scores to the range of 0 to 10
+      max_accessible_area = max(rankings.values(), default=1)
+      for direction, score in rankings.items():
+          if score > 0:
+              normalized_score = 10 * (score / max_accessible_area)
+              # Adjust weight for 'up' and 'down' based on rational criteria
+              if direction in ['up', 'down']:
+                  normalized_score *= self.adjust_up_down_weight(my_head, board_height)
+              rankings[direction] = normalized_score
+
+      return rankings
+
+  def adjust_up_down_weight(self, head, board_height):
+      # Example criterion: prefer 'up' if the snake is in the lower half of the board and vice versa
+      if head['y'] > board_height / 2:
+          return {'up': 1.2, 'down': 0.8}  # Weight 'up' more if in lower half
+      else:
+          return {'up': 0.8, 'down': 1.2}  # Weight 'down' more if in upper half
+class MLBasedPredictionModule(MoveRankingModule):
+  def __init__(self, model):
+      self.model = model  # Trained ML model
+
+  def rank_moves(self, game_state: typing.Dict) -> typing.Dict:
+      # Convert game state to feature vector
+      features = extract_features(game_state)
+
+      # Get predictions from the model
+      predictions = self.model.predict(features)
+
+      # Convert predictions to rankings
+      rankings = convert_predictions_to_rankings(predictions)
+
+      return rankings
+
+# Example usage
+model = load_trained_model('path/to/model')
+ml_prediction_module = MLBasedPredictionModule(model)
+modules.append(ml_prediction_module)
+
+
+
 
 
 
@@ -433,7 +469,6 @@ class PreferLargerSpacesModule(MoveRankingModule):
 
 
 #non module stuff
-health_logger = HealthLoggerModule()
 # Softmax Function
 def softmax(scores):
   print("Raw scores (before softmax):", scores)  # Add this line to print raw scores
@@ -450,7 +485,7 @@ def decide_move(modules, game_state):
             rankings[direction].append(ranking)
 
     # Print the rankings dictionary before summing and averaging
-    print("Weights from all modules: ")
+    print("Rankings from all modules: ")
     for direction, ranks in rankings.items():
         print(f"{direction}: {ranks}")
 
@@ -472,7 +507,6 @@ def decide_move(modules, game_state):
     print(f"Chosen move: {chosen_move}")
 
     return chosen_move
-
 
 # Example of a Module
 class RandomMoveModule(MoveRankingModule):
@@ -498,23 +532,17 @@ def info() -> typing.Dict:
 # Start Function
 def start(game_state: typing.Dict):
     print("GAME START")
-    
-
 
 # End Function
 def end(game_state: typing.Dict):
     print("GAME OVER\n")
-    
-    health_logger.print_health_log_as_csv()
-
 
 # Move Function
 def move(game_state: typing.Dict) -> typing.Dict:
     # Your logic for preventing invalid moves
 
     next_move = decide_move(modules, game_state)
-    current_health = game_state["you"]["health"]
-    health_logger.update_health(current_health)
+
     print(f"MOVE {game_state['turn']}: {next_move}")
     return {"move": next_move}
 

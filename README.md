@@ -18,3 +18,4 @@ This project uses [Python 3](https://www.python.org/) and [Flask](https://flask.
 ## Next Steps
 
 Continue with the [Battlesnake Quickstart Guide](https://docs.battlesnake.com/quickstart) to customize and improve your Battlesnake's behavior.
+
