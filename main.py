@@ -14,15 +14,15 @@ import numpy as np
 from queue import PriorityQueue
 
 
-from modules import AvoidHeadToHeadCollisionsModule
-from modules import Logstuff
-from modules import SmartFoodChasingModule
-from modules import AvoidBackwardMoveModule
-from modules import AvoidOutOfBoundsModule
-from modules import AvoidOtherSnakesModule
-from modules import AStarFoodChasingModule
-from modules import LoopAvoidanceModule
-from modules import PreferLargerSpacesModule
+from modules.AvoidHeadToHeadCollisionsModule import AvoidHeadToHeadCollisionsModule
+
+from modules.SmartFoodChasingModule import SmartFoodChasingModule
+from modules.AvoidBackwardMoveModule import AvoidBackwardMoveModule
+from modules.AvoidOutOfBoundsModule import AvoidOutOfBoundsModule
+from modules.AvoidOtherSnakesModule import AvoidOtherSnakesModule
+from modules.AStarFoodChasingModule import AStarFoodChasingModule
+from modules.LoopAvoidanceModule import LoopAvoidanceModule
+from modules.PreferLargerSpacesModule import PreferLargerSpacesModule
 
 
 import heapq
@@ -52,7 +52,7 @@ class HealthLoggerModule:
       """Print the recorded health log in CSV format, horizontally."""
       health_values_csv = ",".join(map(str, self.health_log))
       print("Health")
-      print(health_values_csv)urn rankings
+      print(health_values_csv)
 class AvoidSelfCollisionModule(MoveRankingModule):
   def rank_moves(self, game_state: typing.Dict) -> typing.Dict:
       my_body = game_state["you"]["body"]
@@ -327,8 +327,27 @@ class RandomMoveModule(MoveRankingModule):
         return {direction: random.random() for direction in ['up', 'down', 'left', 'right']}
 
 # Register Modules
-modules = [AvoidBackwardMoveModule(), modules.AvoidOutOfBoundsModule(), AvoidSelfCollisionModule(),LoopAvoidanceModule(), AvoidOtherSnakesModule(), SmartFoodChasingModule(),  AvoidHeadToHeadCollisionsModule(), PreferLargerSpacesModule()
-]
+avoidBackwardMoveModuleInstance = AvoidBackwardMoveModule()
+avoidOutOfBoundsModuleInstance = AvoidOutOfBoundsModule()
+avoidSelfCollisionModuleInstance = AvoidSelfCollisionModule()
+loopAvoidanceModuleInstance = LoopAvoidanceModule()
+avoidOtherSnakesModuleInstance = AvoidOtherSnakesModule()
+smartFoodChasingModuleInstance = SmartFoodChasingModule()
+avoidHeadToHeadCollisionsModuleInstance = AvoidHeadToHeadCollisionsModule()
+preferLargerSpacesModuleInstance = PreferLargerSpacesModule()
+
+# Add the rank_moves method of each instance to the modules list
+modules = [
+    avoidBackwardMoveModuleInstance.rank_moves,
+    avoidOutOfBoundsModuleInstance.rank_moves,
+    avoidSelfCollisionModuleInstance.rank_moves,
+    loopAvoidanceModuleInstance.rank_moves,
+    avoidOtherSnakesModuleInstance.rank_moves,
+    smartFoodChasingModuleInstance.rank_moves,
+    avoidHeadToHeadCollisionsModuleInstance.rank_moves,
+    preferLargerSpacesModuleInstance.rank_moves
+]    
+
 
 # Battlesnake Info Function
 def info() -> typing.Dict:
