@@ -8,6 +8,7 @@ class MoveRankingModule:
       Example: {'up': 0.5, 'down': 0.2, 'left': 0.1, 'right': 0.2}
       """
       pass
+
 class AvoidHeadToHeadCollisionsModule(MoveRankingModule):
   def rank_moves(self, game_state: typing.Dict) -> typing.Dict:
       my_head = game_state["you"]["body"][0]
@@ -33,8 +34,11 @@ class AvoidHeadToHeadCollisionsModule(MoveRankingModule):
                   enemy_head = snake["body"][0]
                   enemy_length = len(snake["body"])
                   if abs(next_head['x'] - enemy_head['x']) + abs(next_head['y'] - enemy_head['y']) == 1:
-                      # Penalize moves that lead to head-to-head with longer or equal-length snakes
                       if enemy_length >= my_length:
-                          rankings[direction] = -25
+                          # Penalize moves that lead to head-to-head with longer or equal-length snakes
+                          rankings[direction] = -50
+                      else:
+                          # Reward moves that lead to head-to-head with smaller snakes
+                          rankings[direction] += 10  # Or any other value that you deem appropriate
 
       return rankings
